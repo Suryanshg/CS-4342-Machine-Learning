@@ -32,16 +32,20 @@ def problem10 (A, c, d): # Produces mean of all the entries in A between c and d
     return np.mean(S)
 
 def problem11 (A, k): # Produces an (n x k) matrix comprising of right eigenvectors of Acorresponding to the k largest eigenvalues
-    evalue, evect = np.linalg.eig(A)
-    print(evalue)
-    print(evect)
-    return ...
+    eValues, eVectors = np.linalg.eig(A)
+    i = eValues.argsort()[::-1] # Sort in descending order
+    eVectors = eVectors[:,i]
+    return eVectors[:,:k]
 
 def problem12 (A, x): # Produces the solution of the equations A y = x, which is same as y = Inv(A)x
     return np.linalg.solve(A,x)
 
 def problem13 (A, x): # Produces x(Inv(A))
-    return np.linalg.solve(A,x)
+    # Given XY = ((Y.T (X.T))).T
+    # Let X = x (row vector), Y = Inv(A), then X.T = x (column vector) Y.T = Inv(A.T)
+    # So we just use the idea in problem 12
+    result = np.linalg.solve(A.T,x) # Computes Inv(A.T)(x), so we just need to return its transpose
+    return result.T
 
 # Tester code
 A = np.array([[1,2],
@@ -50,4 +54,4 @@ B = np.array([1,2])
 C = np.array([[1,1,1],
               [4,5,6],
               [7,8,9]])
-print(problem13(A,B))
+print(problem11(A,1))
