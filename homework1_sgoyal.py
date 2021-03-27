@@ -27,20 +27,27 @@ def problem8 (A, i, j): # Produces j th column of the i th row
 def problem9 (A, i): # Produces sum of all the entries in the ith row in A
     return np.sum(A,axis=1)[i]
 
-def problem10 (A, c, d): 
+def problem10 (A, c, d): # Produces mean of all the entries in A between c and d (inclusive)
+    S = A[np.nonzero((A<=d)&(A>=c))]
+    return np.mean(S)
+
+def problem11 (A, k): # Produces an (n x k) matrix comprising of right eigenvectors of Acorresponding to the k largest eigenvalues
+    evalue, evect = np.linalg.eig(A)
+    print(evalue)
+    print(evect)
     return ...
 
-def problem11 (A, k):
-    return ...
+def problem12 (A, x): # Produces the solution of the equations A y = x, which is same as y = Inv(A)x
+    return np.linalg.solve(A,x)
 
-def problem12 (A, x):
-    return ...
-
-def problem13 (A, x):
-    return ...
+def problem13 (A, x): # Produces x(Inv(A))
+    return np.linalg.solve(A,x)
 
 # Tester code
 A = np.array([[1,2],
               [3,4]])
 B = np.array([1,2])
-print(problem9(A,0))
+C = np.array([[1,1,1],
+              [4,5,6],
+              [7,8,9]])
+print(problem13(A,B))
