@@ -3,7 +3,7 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
 def fPC (y, yhat):
-    pass
+    return np.mean(y==yhat)
 
 def measureAccuracyOfPredictors (predictors, X, y):
     pass
@@ -33,3 +33,8 @@ def loadData (which):
 if __name__ == "__main__":
     testingFaces, testingLabels = loadData("test")
     trainingFaces, trainingLabels = loadData("train")
+    # print(trainingFaces.shape)
+    # print(trainingLabels.shape)
+    y = np.array([1,0,0,1,1])
+    yhat = np.array([0,0,0,0,1])
+    print(fPC(y,yhat))
