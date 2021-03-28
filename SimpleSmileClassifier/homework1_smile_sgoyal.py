@@ -76,9 +76,9 @@ if __name__ == "__main__":
     trainingFaces, trainingLabels = loadData("train")
     # print(trainingFaces.shape)
 
-    predictors = stepwiseRegression(trainingFaces[:400], trainingLabels[:400], testingFaces, testingLabels)
+    predictors = stepwiseRegression(trainingFaces[:2000], trainingLabels[:2000], testingFaces, testingLabels)
     print(predictors)
-    print("Accuracy: ",measureAccuracyOfPredictors(predictors, trainingFaces, trainingLabels))
+    print("Accuracy: ",measureAccuracyOfPredictors(predictors, testingFaces, testingLabels))
 
     # y = np.array([1,0,0,1,1])
     # yhat = np.array([0,0,0,0,1])
