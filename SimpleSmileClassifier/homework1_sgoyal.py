@@ -44,14 +44,14 @@ def problem13 (A, x): # Produces x(Inv(A))
     # Given XY = ((Y.T (X.T))).T
     # Let X = x (row vector), Y = Inv(A), then X.T = x (column vector) Y.T = Inv(A.T)
     # So we just use the idea in problem 12
-    result = np.linalg.solve(A.T,x) # Computes Inv(A.T)(x), so we just need to return its transpose
+    result = np.linalg.solve(A.T,x.T) # Computes Inv(A.T)(x), so we just need to return its transpose
     return result.T
 
 # Tester code
-A = np.array([[1,2],
-              [3,4]])
+A = np.array([[1,0],
+              [0,1]])
 B = np.array([1,2])
 C = np.array([[1,1,1],
               [4,5,6],
               [7,8,9]])
-print(problem11(A,1))
+print(problem13(A,B))
