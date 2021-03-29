@@ -47,19 +47,27 @@ def stepwiseRegression (trainingFaces, trainingLabels, testingFaces, testingLabe
         predictors.append(bestFeature)
     return predictors
 
-    # Visualization code (to be shifted to another function)
-    show = False
+    
+
+# Visualizes the "best" features identified on one image
+def visualizeFeatures(predictors, testingFaces):
+    
+    show = True
     if show:
         # Show an arbitrary test image in grayscale
         im = testingFaces[0,:,:]
         fig,ax = plt.subplots(1)
         ax.imshow(im, cmap='gray')
-        # Show r1,c1
-        rect = patches.Rectangle((c1 - 0.5, r1 - 0.5), 1, 1, linewidth=2, edgecolor='r', facecolor='none')
-        ax.add_patch(rect)
-        # Show r2,c2
-        rect = patches.Rectangle((c2 - 0.5, r2 - 0.5), 1, 1, linewidth=2, edgecolor='b', facecolor='none')
-        ax.add_patch(rect)
+            
+        for predictor in predictors:
+            r1,c1,r2,c2 = predictor
+            # Show r1,c1
+            rect = patches.Rectangle((c1 - 0.5, r1 - 0.5), 1, 1, linewidth=2, edgecolor='r', facecolor='none')
+            ax.add_patch(rect)
+            # Show r2,c2
+            rect = patches.Rectangle((c2 - 0.5, r2 - 0.5), 1, 1, linewidth=2, edgecolor='b', facecolor='none')
+            ax.add_patch(rect)
+        
         # Display the merged result
         plt.show()
 
@@ -76,9 +84,15 @@ if __name__ == "__main__":
     trainingFaces, trainingLabels = loadData("train")
     # print(trainingFaces.shape)
 
-    predictors = stepwiseRegression(trainingFaces[:2000], trainingLabels[:2000], testingFaces, testingLabels)
-    print(predictors)
-    print("Accuracy: ",measureAccuracyOfPredictors(predictors, testingFaces, testingLabels))
+    sizes = [400,800,1200,1600,2000]
+    # for n in sizes:
+    #     predictors = stepwiseRegression(trainingFaces[:n], trainingLabels[:n], testingFaces, testingLabels)
+    #     print("Predictors for size "+str(n)+" are "+str(predictors))
+    #     print("Training Accuracy:",measureAccuracyOfPredictors(predictors, trainingFaces[:n], trainingLabels[:n]))
+    #     print("Testing Accuracy:",measureAccuracyOfPredictors(predictors, testingFaces, testingLabels))
+    #     print()
+
+    visualizeFeatures(stepwiseRegression(trainingFaces, trainingLabels, testingFaces, testingLabels), testingFaces)
 
     # y = np.array([1,0,0,1,1])
     # yhat = np.array([0,0,0,0,1])
