@@ -85,12 +85,12 @@ if __name__ == "__main__":
     # print(trainingFaces.shape)
 
     sizes = [400,800,1200,1600,2000]
-    # for n in sizes:
-    #     predictors = stepwiseRegression(trainingFaces[:n], trainingLabels[:n], testingFaces, testingLabels)
-    #     print("Predictors for size "+str(n)+" are "+str(predictors))
-    #     print("Training Accuracy:",measureAccuracyOfPredictors(predictors, trainingFaces[:n], trainingLabels[:n]))
-    #     print("Testing Accuracy:",measureAccuracyOfPredictors(predictors, testingFaces, testingLabels))
-    #     print()
+    for n in sizes:
+        predictors = stepwiseRegression(trainingFaces[:n], trainingLabels[:n], testingFaces, testingLabels)
+        print("Predictors for size, n "+str(n)+" are "+str(predictors))
+        print("Training Accuracy for the given n:",measureAccuracyOfPredictors(predictors, trainingFaces[:n], trainingLabels[:n]))
+        print("Testing Accuracy:",measureAccuracyOfPredictors(predictors, testingFaces, testingLabels))
+        print()
 
     visualizeFeatures(stepwiseRegression(trainingFaces, trainingLabels, testingFaces, testingLabels), testingFaces)
 
