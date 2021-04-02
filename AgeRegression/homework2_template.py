@@ -15,12 +15,18 @@ def trainPolynomialRegressor (x, y, d):
 # Given an array of faces (N x M x M, where N is number of examples and M is number of pixes along each axis),
 # return a design matrix Xtilde ((M**2 + 1) x N) whose last row contains all 1s.
 def reshapeAndAppend1s (faces):
-    pass
+    ones = np.ones(faces.shape[0]) # array for bias terms for each image
+    reshapedFaces = faces.reshape(faces.shape[0],faces.shape[1]*faces.shape[2]).T # reshaping to make each image a column vector
+    Xtilde = np.vstack((reshapedFaces,ones)) # Adding 1s for the bias term
+    return Xtilde
 
 # Given a vector of weights w, a design matrix Xtilde, and a vector of labels y, return the (unregularized)
 # MSE.
 def fMSE (w, Xtilde, y):
-    pass
+    y_hat = (Xtilde.T).dot(w)
+    squaredError = np.sum((y_hat - y)**2)
+    meanSquaredError = sqaredError/(2*len(y))
+    return meanSquaredError
 
 # Given a vector of weights w, a design matrix Xtilde, and a vector of labels y, and a regularization strength
 # alpha (default value of 0), return the gradient of the (regularized) MSE loss.
@@ -53,6 +59,8 @@ if __name__ == "__main__":
     Xtilde_te = reshapeAndAppend1s(np.load("age_regression_Xte.npy"))
     yte = np.load("age_regression_yte.npy")
 
+    print(Xtilde_tr.shape)
+    
     w1 = method1(Xtilde_tr, ytr)
     w2 = method2(Xtilde_tr, ytr)
     w3 = method3(Xtilde_tr, ytr)
