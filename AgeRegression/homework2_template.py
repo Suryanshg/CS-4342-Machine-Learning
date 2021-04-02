@@ -25,7 +25,7 @@ def reshapeAndAppend1s (faces):
 def fMSE (w, Xtilde, y):
     y_hat = (Xtilde.T).dot(w)
     squaredError = np.sum((y_hat - y)**2)
-    meanSquaredError = sqaredError/(2*len(y))
+    meanSquaredError = squaredError/(2*len(y))
     return meanSquaredError
 
 # Given a vector of weights w, a design matrix Xtilde, and a vector of labels y, and a regularization strength
@@ -35,7 +35,11 @@ def gradfMSE (w, Xtilde, y, alpha = 0.):
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using the analytical solution.
 def method1 (Xtilde, y):
-    pass
+    # Using the form of equation A x = B, solving for x
+    A = Xtilde.dot(Xtilde.T)
+    B = Xtilde.dot(y)
+    w = np.linalg.solve(A,B) # the solution x to the linear eq above
+    return w
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using gradient descent on fMSE.
 def method2 (Xtilde, y):
@@ -59,11 +63,14 @@ if __name__ == "__main__":
     Xtilde_te = reshapeAndAppend1s(np.load("age_regression_Xte.npy"))
     yte = np.load("age_regression_yte.npy")
 
-    print(Xtilde_tr.shape)
+    # print(Xtilde_tr.shape)
     
     w1 = method1(Xtilde_tr, ytr)
     w2 = method2(Xtilde_tr, ytr)
     w3 = method3(Xtilde_tr, ytr)
+
+    fmse1 = fMSE(w1,Xtilde_te, yte)
+    print(fmse1)
 
     # Report fMSE cost using each of the three learned weight vectors
     # ...
