@@ -31,19 +31,25 @@ def fMSE (w, Xtilde, y):
 # Given a vector of weights w, a design matrix Xtilde, and a vector of labels y, and a regularization strength
 # alpha (default value of 0), return the gradient of the (regularized) MSE loss.
 def gradfMSE (w, Xtilde, y, alpha = 0.):
-    pass
+    # Formula for gradient is (X((X.T)w - y))/n
+    # Let A = (X.T)w - y, so gradientMse = X.dot(A)/n
+    n = y.shape
+    A = ((Xtilde.T).dot(w)) - y
+    gradientMSE = (Xtilde.dot(A))/n
+    return gradientMSE
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using the analytical solution.
 def method1 (Xtilde, y):
     # Using the form of equation A x = B, solving for x
     A = Xtilde.dot(Xtilde.T)
     B = Xtilde.dot(y)
-    w = np.linalg.solve(A,B) # the solution x to the linear eq above
+    w = np.linalg.solve(A,B) # the solution x to the linear eq above which is x = Inv(A) . B
     return w
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using gradient descent on fMSE.
 def method2 (Xtilde, y):
-    pass
+    w = gradientDescent(Xtilde,y)
+    return w
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using gradient descent on fMSE
 # with regularization.
@@ -53,8 +59,12 @@ def method3 (Xtilde, y):
 
 # Helper method for method2 and method3.
 def gradientDescent (Xtilde, y, alpha = 0.):
-    EPSILON = 3e-3  # Step size aka learning rate
+    EPSILON = 3e-3  # Step size aka learning rate = 0.003
     T = 5000  # Number of gradient descent iterations
+    w = 0.01*np.random.randn(Xtilde.shape[0])
+    for i in range(T):
+        w = w - (EPSILON*gradfMSE(w, Xtilde,y,alpha))
+    return w
 
 if __name__ == "__main__":
     # Load data
@@ -65,12 +75,27 @@ if __name__ == "__main__":
 
     # print(Xtilde_tr.shape)
     
-    w1 = method1(Xtilde_tr, ytr)
-    w2 = method2(Xtilde_tr, ytr)
+    # Computing weights using different methods
+    w1 = method1(Xtilde_tr, ytr) # Analytical Method
+    w2 = method2(Xtilde_tr, ytr) # Gradient Descent Method
     w3 = method3(Xtilde_tr, ytr)
 
-    fmse1 = fMSE(w1,Xtilde_te, yte)
-    print(fmse1)
+    print("Method 1: Analytical Method")
+    trainingAccuracy1 = fMSE(w1,Xtilde_tr, ytr)
+    testingAccuracy1 = fMSE(w1,Xtilde_te,yte)
+    print("Training Accuracy:",trainingAccuracy1)
+    print("Testing Accuracy:",testingAccuracy1)
+    print()
+    # print(w1.shape)
+
+    # print(gradientDescent(Xtilde_tr,ytr))
+    print("Method 2: Gradient Descent Method")
+    trainingAccuracy2 = fMSE(w2,Xtilde_tr, ytr)
+    testingAccuracy2 = fMSE(w2,Xtilde_te,yte)
+    print("Training Accuracy:",trainingAccuracy2)
+    print("Testing Accuracy:",testingAccuracy2)
+    print()
+
 
     # Report fMSE cost using each of the three learned weight vectors
     # ...
