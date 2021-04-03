@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 ########################################################################################################################
 # PROBLEM 2
@@ -36,7 +37,11 @@ def gradfMSE (w, Xtilde, y, alpha = 0.):
     n = y.shape
     A = ((Xtilde.T).dot(w)) - y
     gradientMSE = (Xtilde.dot(A))/n
-    return gradientMSE
+
+    # Addition for the L2 regularization term
+    # Formula for the gradient is (X((X.T)w - y))/n + (alpha * w)/n
+    regularizedGradientMSE = gradientMSE + ((alpha*w)/n)
+    return regularizedGradientMSE
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using the analytical solution.
 def method1 (Xtilde, y):
@@ -55,16 +60,26 @@ def method2 (Xtilde, y):
 # with regularization.
 def method3 (Xtilde, y):
     ALPHA = 0.1
-    pass
+    w = gradientDescent(Xtilde,y,ALPHA)
+    return w
 
 # Helper method for method2 and method3.
 def gradientDescent (Xtilde, y, alpha = 0.):
     EPSILON = 3e-3  # Step size aka learning rate = 0.003
     T = 5000  # Number of gradient descent iterations
     w = 0.01*np.random.randn(Xtilde.shape[0])
+    if alpha > 0:
+        w[-1] = 0 # Setting bias to zero for regularization
     for i in range(T):
         w = w - (EPSILON*gradfMSE(w, Xtilde,y,alpha))
     return w
+
+# Function to visualize the weights learned
+def visualizeWeights(W):
+    for w in W:
+        img = w.reshape(48,48)
+        plt.imshow(img)
+        plt.show()
 
 if __name__ == "__main__":
     # Load data
@@ -78,17 +93,16 @@ if __name__ == "__main__":
     # Computing weights using different methods
     w1 = method1(Xtilde_tr, ytr) # Analytical Method
     w2 = method2(Xtilde_tr, ytr) # Gradient Descent Method
-    w3 = method3(Xtilde_tr, ytr)
+    w3 = method3(Xtilde_tr, ytr) # Gradient Descent with L2 Regularization Method
 
+    # Report fMSE cost using each of the three learned weight vectors
     print("Method 1: Analytical Method")
     trainingAccuracy1 = fMSE(w1,Xtilde_tr, ytr)
     testingAccuracy1 = fMSE(w1,Xtilde_te,yte)
     print("Training Accuracy:",trainingAccuracy1)
     print("Testing Accuracy:",testingAccuracy1)
     print()
-    # print(w1.shape)
-
-    # print(gradientDescent(Xtilde_tr,ytr))
+    
     print("Method 2: Gradient Descent Method")
     trainingAccuracy2 = fMSE(w2,Xtilde_tr, ytr)
     testingAccuracy2 = fMSE(w2,Xtilde_te,yte)
@@ -96,6 +110,40 @@ if __name__ == "__main__":
     print("Testing Accuracy:",testingAccuracy2)
     print()
 
+    print("Method 3: Gradient Descent with L2 Regularization Method")
+    trainingAccuracy3 = fMSE(w3,Xtilde_tr, ytr)
+    testingAccuracy3 = fMSE(w3,Xtilde_te,yte)
+    print("Training Accuracy:",trainingAccuracy3)
+    print("Testing Accuracy:",testingAccuracy3)
+    print()
 
-    # Report fMSE cost using each of the three learned weight vectors
-    # ...
+    # Visualization code
+    # visualizeWeights([w1[:-1],w2[:-1],w3[:-1]])
+
+    # Top 5 most egregious errors in test dataset
+    yte_hat = (Xtilde_te.T).dot(w3)
+    print("RMSE of test set for method 3:",np.sqrt([testingAccuracy3]))
+
+    diff = abs(yte_hat - yte)
+    sortedDiffIndex = diff.argsort()[::-1] # Sorting in descending order
+    print(sortedDiffIndex)
+    imgs = []
+    ys = []
+    yhats = []
+    for i in range(5):
+        index = sortedDiffIndex[i]
+
+        img = (Xtilde_te.T)[index][:-1]
+        y = yte[index]
+        yhat = yte_hat[index]
+
+        imgs.append(img)
+        ys.append(y)
+        yhats.append(yhat)
+    print("Actual Ages:",ys)
+    print("Predicted Ages:",yhats)
+    for img in imgs:
+        img = img.reshape(48,48)
+        plt.imshow(img)
+        plt.show()
+    
