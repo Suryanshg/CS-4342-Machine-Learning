@@ -7,7 +7,16 @@ import matplotlib.pyplot as plt
 # Given a vector x of (scalar) inputs and associated vector y of the target labels, and given
 # degree d of the polynomial, train a polynomial regression model and return the optimal weight vector.
 def trainPolynomialRegressor (x, y, d):
-    pass
+    # Preparing design matrix X
+    X = np.ones(x.shape)
+    X = np.vstack((X,x))
+    for i in range(2,d+1):
+        featureVector = np.power(x,i)
+        X = np.vstack((X,featureVector))
+
+    # Performing the linear algebra solution using method 1
+    w = method1(X,y)
+    return w
 
 ########################################################################################################################
 # PROBLEM 1
@@ -89,7 +98,7 @@ if __name__ == "__main__":
     yte = np.load("age_regression_yte.npy")
 
     # print(Xtilde_tr.shape)
-    
+    '''
     # Computing weights using different methods
     w1 = method1(Xtilde_tr, ytr) # Analytical Method
     w2 = method2(Xtilde_tr, ytr) # Gradient Descent Method
@@ -115,7 +124,7 @@ if __name__ == "__main__":
     testingAccuracy3 = fMSE(w3,Xtilde_te,yte)
     print("Training Accuracy:",trainingAccuracy3)
     print("Testing Accuracy:",testingAccuracy3)
-    print()
+    print("w3",w3)
 
     # Visualization code
     # visualizeWeights([w1[:-1],w2[:-1],w3[:-1]])
@@ -146,4 +155,9 @@ if __name__ == "__main__":
         img = img.reshape(48,48)
         plt.imshow(img)
         plt.show()
+    '''
+    # Test code for polynomial regression
+    x = np.array([1,2,3])
+    y = np.array([1,2,3])
+    print(trainPolynomialRegressor(x,y,3))
     
