@@ -49,7 +49,10 @@ def gradfMSE (w, Xtilde, y, alpha = 0.):
 
     # Addition for the L2 regularization term
     # Formula for the gradient is (X((X.T)w - y))/n + (alpha * w)/n
-    regularizedGradientMSE = gradientMSE + ((alpha*w)/n)
+    bias = w[-1]
+    derivativeL2 = (alpha*w)/n
+    derivativeL2[-1] = bias
+    regularizedGradientMSE = gradientMSE + derivativeL2
     return regularizedGradientMSE
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using the analytical solution.
@@ -77,8 +80,6 @@ def gradientDescent (Xtilde, y, alpha = 0.):
     EPSILON = 3e-3  # Step size aka learning rate = 0.003
     T = 5000  # Number of gradient descent iterations
     w = 0.01*np.random.randn(Xtilde.shape[0])
-    if alpha > 0:
-        w[-1] = 0 # Setting bias to zero for regularization
     for i in range(T):
         w = w - (EPSILON*gradfMSE(w, Xtilde,y,alpha))
     return w
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     yte = np.load("age_regression_yte.npy")
 
     # print(Xtilde_tr.shape)
-    '''
+ 
     # Computing weights using different methods
     w1 = method1(Xtilde_tr, ytr) # Analytical Method
     w2 = method2(Xtilde_tr, ytr) # Gradient Descent Method
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     print("w3",w3)
 
     # Visualization code
-    # visualizeWeights([w1[:-1],w2[:-1],w3[:-1]])
+    visualizeWeights([w1[:-1],w2[:-1],w3[:-1]])
 
     # Top 5 most egregious errors in test dataset
     yte_hat = (Xtilde_te.T).dot(w3)
@@ -155,9 +156,11 @@ if __name__ == "__main__":
         img = img.reshape(48,48)
         plt.imshow(img)
         plt.show()
-    '''
+
     # Test code for polynomial regression
     x = np.array([1,2,3])
     y = np.array([1,2,3])
     print(trainPolynomialRegressor(x,y,3))
+
+
     
