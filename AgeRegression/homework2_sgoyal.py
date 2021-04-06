@@ -160,7 +160,7 @@ if __name__ == "__main__":
     # Test code for polynomial regression
     x = np.array([1,2,3])
     y = np.array([1,2,3])
-    print(trainPolynomialRegressor(x,y,3))
+    print("Optimized weights after polynomial regression:",trainPolynomialRegressor(x,y,3))
 
 
     
