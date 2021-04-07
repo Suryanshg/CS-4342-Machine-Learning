@@ -49,11 +49,12 @@ def gradfMSE (w, Xtilde, y, alpha = 0.):
 
     # Addition for the L2 regularization term
     # Formula for the gradient is (X((X.T)w - y))/n + (alpha * w)/n
-    bias = w[-1]
+    # bias = w[-1]
     derivativeL2 = (alpha*w)/n
-    derivativeL2[-1] = bias
+    derivativeL2[-1] = 0
     regularizedGradientMSE = gradientMSE + derivativeL2
     return regularizedGradientMSE
+    # return gradientMSE
 
 # Given a design matrix Xtilde and labels y, train a linear regressor for Xtilde and y using the analytical solution.
 def method1 (Xtilde, y):
