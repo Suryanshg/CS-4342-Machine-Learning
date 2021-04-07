@@ -125,7 +125,8 @@ if __name__ == "__main__":
     testingAccuracy3 = fMSE(w3,Xtilde_te,yte)
     print("Training Accuracy:",trainingAccuracy3)
     print("Testing Accuracy:",testingAccuracy3)
-    print("w3",w3)
+    # print("w3",w3)
+    print()
 
     # Visualization code
     visualizeWeights([w1[:-1],w2[:-1],w3[:-1]])
@@ -136,7 +137,7 @@ if __name__ == "__main__":
 
     diff = abs(yte_hat - yte)
     sortedDiffIndex = diff.argsort()[::-1] # Sorting in descending order
-    print(sortedDiffIndex)
+    # print(sortedDiffIndex)
     imgs = []
     ys = []
     yhats = []
