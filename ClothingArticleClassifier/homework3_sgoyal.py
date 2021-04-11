@@ -122,6 +122,7 @@ if __name__ == "__main__":
 
     # Visualize the vectors
 
-    # W0 = W.T[0][:-1].reshape(28,28)
-    # plt.imshow(W0)
-    # plt.show()
+    for i in range(10):
+        img = W.T[i][:-1].reshape(28,28)
+        plt.imshow(img)
+        plt.show()
