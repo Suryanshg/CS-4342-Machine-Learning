@@ -55,7 +55,7 @@ def randomizeData(X,y):
 # conduct stochastic gradient descent (SGD) to optimize the weight matrix W (785x10).
 # Then return W.
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon = None, batchSize = None):
-    epochs = 1
+    epochs = 50
 
     # Randomize order of the training data
     X,y = randomizeData(trainingImages,trainingLabels)
@@ -70,17 +70,19 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     
     # print("w:",w)
     for i in range(epochs):
-        X,y = randomizeData(X,y)
+        # X,y = randomizeData(X,y)
         for j in range(batches):
             startIndex = j*batchSize
             endIndex = (j*batchSize)+100
             w = w - (epsilon*gradfCE(w,X.T[startIndex:endIndex],y[startIndex:endIndex]))
+
             if(j >= (batches - 20)):
                 yhat = softMaxActivation(X.T[startIndex:endIndex].dot(w))
-                print("Batch number:",j)
+                print("Batch number:",j+1)
                 print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 print()
             # break
+
     return w
 
 if __name__ == "__main__":
@@ -95,10 +97,11 @@ if __name__ == "__main__":
     yTraining = getOneHotVectors(trainingLabels) # 60000 X 10
     yTesting = getOneHotVectors(testingLabels)
 
-    # Append a constant 1 term to each example to correspond to the bias terms
-    Xtilde_tr = reshapeAndAppend1s(trainingImages)/255 #  785 X 60000 
-    Xtilde_te = reshapeAndAppend1s(testingImages)/255 #   785 X 10000
+    # Append a constant 1 term to each example to correspond to the bias terms as well as scale all the other values by 255
+    Xtilde_tr = reshapeAndAppend1s(trainingImages/255) #  785 X 60000 
+    Xtilde_te = reshapeAndAppend1s(testingImages/255) #   785 X 10000
     
+    # print(list(Xtilde_tr.T[0]))
     # y = np.array([[0,1,0,0,0],[0,1,0,0,0]])
     # yhat = np.array([[0,1,0,0,0],[1,0,0,0,0]])
     # print(fCE(y,yhat))
@@ -121,8 +124,10 @@ if __name__ == "__main__":
     # print(softMaxActivation(z))
 
     # Visualize the vectors
-
+    
     for i in range(10):
         img = W.T[i][:-1].reshape(28,28)
         plt.imshow(img)
         plt.show()
+    
+
