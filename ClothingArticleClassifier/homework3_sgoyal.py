@@ -70,12 +70,17 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     
     # print("w:",w)
     for i in range(epochs):
+        X,y = randomizeData(X,y)
         for j in range(batches):
             startIndex = j*batchSize
             endIndex = (j*batchSize)+100
             w = w - (epsilon*gradfCE(w,X.T[startIndex:endIndex],y[startIndex:endIndex]))
+            if(j >= (batches - 20)):
+                yhat = softMaxActivation(X.T[startIndex:endIndex].dot(w))
+                print("Batch number:",j)
+                print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
+                print()
             # break
-            # print(y[startIndex:endIndex].shape)
     return w
 
 if __name__ == "__main__":
@@ -102,16 +107,19 @@ if __name__ == "__main__":
 
     # Training the model
     W = softmaxRegression(Xtilde_tr, yTraining, Xtilde_te, yTesting, epsilon=0.1, batchSize=100)
-    print(W)
+    # print(W)
 
-    yhat = softMaxActivation(Xtilde_tr.T.dot(W))
-    print(fPC(yTraining,yhat))
+    yhatTraining = softMaxActivation(Xtilde_tr.T.dot(W))
+    print("Training Accuracy (fPC):",fPC(yTraining,yhatTraining))
 
-    
+    yhatTesting = softMaxActivation(Xtilde_te.T.dot(W))
+    print("Testing Accuracy (fPC):",fPC(yTesting,yhatTesting))
+    print("Testing Loss (fCE):",fCE(yTesting,yhatTesting))
+
     # z = np.array([[1, 3, 5],
     #               [100,200,300]])
     # print(softMaxActivation(z))
-    
+
     # Visualize the vectors
 
     # W0 = W.T[0][:-1].reshape(28,28)
