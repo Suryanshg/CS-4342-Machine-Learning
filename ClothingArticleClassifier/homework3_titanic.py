@@ -7,7 +7,12 @@ if __name__ == "__main__":
     y = d.Survived.to_numpy()
     sex = d.Sex.map({"male":0, "female":1}).to_numpy()
     Pclass = d.Pclass.to_numpy()
+    SibSp = d.SibSp.to_numpy()
 
+    print("y:",y)
+    print("sex:",sex)
+    print("Pclass:",Pclass)
+    print("SibSp:",SibSp)
     # Train model using part of homework 3.
     # ...
 

@@ -55,10 +55,11 @@ def randomizeData(X,y):
 # conduct stochastic gradient descent (SGD) to optimize the weight matrix W (785x10).
 # Then return W.
 def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon = None, batchSize = None):
-    epochs = 50
+    epochs = 10
 
     # Randomize order of the training data
-    X,y = randomizeData(trainingImages,trainingLabels)
+    # X,y = randomizeData(trainingImages,trainingLabels)
+    X,y = trainingImages, trainingLabels
 
     # Initialize random weights with a bias = 1 for each category
     # w = np.random.normal(0, 0.01, (X.shape[0]-1,10))
@@ -70,18 +71,19 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     
     # print("w:",w)
     for i in range(epochs):
-        # X,y = randomizeData(X,y)
+        X,y = randomizeData(X,y)
         for j in range(batches):
             startIndex = j*batchSize
             endIndex = (j*batchSize)+100
             w = w - (epsilon*gradfCE(w,X.T[startIndex:endIndex],y[startIndex:endIndex]))
-
-            if(j >= (batches - 20)):
+            
+            if((i == epochs-1) and (j >= (batches - 20))):
                 yhat = softMaxActivation(X.T[startIndex:endIndex].dot(w))
-                print("Batch number:",j+1)
-                print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
+                print("Batch number:",j+1,"| Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
+                # print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 print()
             # break
+            
 
     return w
 
