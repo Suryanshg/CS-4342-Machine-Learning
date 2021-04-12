@@ -74,12 +74,17 @@ if __name__ == "__main__":
     Pclass = d.Pclass.to_numpy()
     SibSp = d.SibSp.to_numpy()
 
-    print("y:",y)
-    print("sex:",sex)
-    print("Pclass:",Pclass)
-    print("SibSp:",SibSp)
+    # print("y:",y)
+    # print("sex:",sex)
+    # print("Pclass:",Pclass)
+    # print("SibSp:",SibSp)
+
+    yTraining = getOneHotVectors(y)
+    nTraining = len(d)
+    Xtilde_tr = np.hstack((sex.reshape(nTraining,1),Pclass.reshape(nTraining,1),SibSp.reshape(nTraining,1),np.ones((nTraining,1)))).T # 4 X 891
+
     # Train model using part of homework 3.
-    # ...
+    # Dimensions of Weights should be 4 X 2
 
     # Load testing data
     # ...
