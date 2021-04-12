@@ -1,11 +1,25 @@
 import pandas
 import numpy as np
+import math
+
+# Computes the Cross Entropy Loss
+def fCE(y,yhat):
+    return -np.sum(y*np.log(yhat))/y.shape[0]
+
+# Computes the Percent Correct Accuracy
+def fPC(y,yhat):
+    labelY = np.argmax(y,axis=1)
+    labelYhat = np.argmax(yhat,axis=1)
+    return np.mean(labelY == labelYhat)
 
 # Converts labels into one hot vectors
 def getOneHotVectors(y):
     oneHotVectors = np.zeros((y.size,y.max()+1))
     oneHotVectors[np.arange(y.size),y] = 1
     return oneHotVectors
+# Converts one hot vectors to labels
+def getLabels(oneHotVectors):
+    return np.argmax(oneHotVectors,axis=1)
 
 # Computes the gradient of the Cross Entropy Loss, will be used for softmax regression
 def gradfCE(w, XT, y):
@@ -33,37 +47,36 @@ def randomizeData(X,y):
 # Given training and testing data, learning rate epsilon, and a specified batch size,
 # conduct stochastic gradient descent (SGD) to optimize the weight matrix W (785x10).
 # Then return W.
-def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLabels, epsilon = None, batchSize = None):
-    epochs = 10
-
-    # Randomize order of the training data
-    # X,y = randomizeData(trainingImages,trainingLabels)
-    X,y = trainingImages, trainingLabels
-
-    # Initialize random weights with a bias = 1 for each category
+def softmaxRegression (trainingData, trainingLabels, epsilon = None, batchSize = None): # batch size 9
+    epochs = 5
+    X,y = randomizeData(trainingData, trainingLabels)
+    # Initialize random weights with a bias = 1 for each category, there are two categories here
     # w = np.random.normal(0, 0.01, (X.shape[0]-1,10))
-    w = 0.01*np.random.randn(X.shape[0]-1,10)
-    w = np.vstack((w,np.ones((1,10))))
+    w = 0.01*np.random.randn(X.shape[0]-1,2)
+    w = np.vstack((w,np.ones((1,2))))
     n = len(y)
     batches = math.ceil(n/batchSize)
     # print(batches)
     
     # print("w:",w)
+    
     for i in range(epochs):
         X,y = randomizeData(X,y)
         for j in range(batches):
             startIndex = j*batchSize
-            endIndex = (j*batchSize)+100
+            endIndex = (j*batchSize)+batchSize
             w = w - (epsilon*gradfCE(w,X.T[startIndex:endIndex],y[startIndex:endIndex]))
             
+            '''
             if((i == epochs-1) and (j >= (batches - 20))):
                 yhat = softMaxActivation(X.T[startIndex:endIndex].dot(w))
                 print("Batch number:",j+1,"| Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 # print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 print()
+            '''
             # break
             
-
+    
     return w
 
 if __name__ == "__main__":
@@ -86,11 +99,26 @@ if __name__ == "__main__":
     # Train model using part of homework 3.
     # Dimensions of Weights should be 4 X 2
 
+    W = softmaxRegression(Xtilde_tr,yTraining,epsilon = 0.1,batchSize = 9)
+    
+    yhatTraining = softMaxActivation(Xtilde_tr.T.dot(W))
+    print("Training Accuracy (fPC):",fPC(yTraining,yhatTraining))
+
     # Load testing data
-    # ...
+    d = pandas.read_csv("test.csv")
+    # y = d.Survived.to_numpy()
+    sex = d.Sex.map({"male":0, "female":1}).to_numpy()
+    Pclass = d.Pclass.to_numpy()
+    SibSp = d.SibSp.to_numpy()
+
+    # yTesting = getOneHotVectors(y)
+    nTesting = len(d)
+    Xtilde_te = np.hstack((sex.reshape(nTesting,1),Pclass.reshape(nTesting,1),SibSp.reshape(nTesting,1),np.ones((nTesting,1)))).T # 4 X 418
 
     # Compute predictions on test set
-    # ...
+    yhatTesting = softMaxActivation(Xtilde_te.T.dot(W))
+    yhatLabels = getLabels(yhatTesting)
+    print(yhatLabels)
 
     # Write CSV file of the format:
     # PassengerId, Survived
