@@ -110,6 +110,7 @@ if __name__ == "__main__":
     sex = d.Sex.map({"male":0, "female":1}).to_numpy()
     Pclass = d.Pclass.to_numpy()
     SibSp = d.SibSp.to_numpy()
+    PassengerId = d.PassengerId.to_numpy()
 
     # yTesting = getOneHotVectors(y)
     nTesting = len(d)
@@ -118,8 +119,12 @@ if __name__ == "__main__":
     # Compute predictions on test set
     yhatTesting = softMaxActivation(Xtilde_te.T.dot(W))
     yhatLabels = getLabels(yhatTesting)
-    print(yhatLabels)
+    # print(yhatLabels)
+    # print(PassengerId)
 
     # Write CSV file of the format:
     # PassengerId, Survived
-    # ..., ...
+    df = pandas.DataFrame({'PassengerId':PassengerId, 'Survived':yhatLabels})
+    # df.to_csv('predictions.csv',index = False)
+
+    # Current score: 0.77272
