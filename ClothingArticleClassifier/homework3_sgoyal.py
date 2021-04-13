@@ -68,13 +68,16 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     n = len(y)
     batches = math.ceil(n/batchSize)
     # print(batches)
+
+    miniBatches = []
+    losses = []
     
     # print("w:",w)
     for i in range(epochs):
         X,y = randomizeData(X,y)
         for j in range(batches):
             startIndex = j*batchSize
-            endIndex = (j*batchSize)+100
+            endIndex = (j*batchSize)+batchSize
             w = w - (epsilon*gradfCE(w,X.T[startIndex:endIndex],y[startIndex:endIndex]))
             
             if((i == epochs-1) and (j >= (batches - 20))):
@@ -82,9 +85,16 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
                 print("Batch number:",j+1,"| Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 # print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 print()
+
+                miniBatches.append(j+1)
+                losses.append(fCE(y[startIndex:endIndex],yhat))
             # break
             
-
+    plt.plot(miniBatches,losses)
+    plt.xticks(miniBatches, rotation="vertical")
+    plt.xlabel("Mini Batches")
+    plt.ylabel("Training Loss (fCE)")
+    plt.show()
     return w
 
 if __name__ == "__main__":
@@ -131,5 +141,7 @@ if __name__ == "__main__":
         img = W.T[i][:-1].reshape(28,28)
         plt.imshow(img)
         plt.show()
+    
+
     
 
