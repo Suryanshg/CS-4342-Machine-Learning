@@ -48,7 +48,7 @@ def randomizeData(X,y):
 # conduct stochastic gradient descent (SGD) to optimize the weight matrix W (785x10).
 # Then return W.
 def softmaxRegression (trainingData, trainingLabels, epsilon = None, batchSize = None): # batch size 9
-    epochs = 5
+    epochs = 30
     X,y = randomizeData(trainingData, trainingLabels)
     # Initialize random weights with a bias = 1 for each category, there are two categories here
     # w = np.random.normal(0, 0.01, (X.shape[0]-1,10))
@@ -85,36 +85,41 @@ if __name__ == "__main__":
     y = d.Survived.to_numpy()
     sex = d.Sex.map({"male":0, "female":1}).to_numpy()
     Pclass = d.Pclass.to_numpy()
-    SibSp = d.SibSp.to_numpy()
+    SibSp = d.SibSp.to_numpy() # SibSp is ordinal
 
     # print("y:",y)
-    # print("sex:",sex)
+    # print("sex:",getOneHotVectors(sex))
     # print("Pclass:",Pclass)
     # print("SibSp:",SibSp)
+    sex = getOneHotVectors(sex) # Sex is categorical
+    Pclass = getOneHotVectors(Pclass)[:,1:] # Pclass is categorical
 
     yTraining = getOneHotVectors(y)
     nTraining = len(d)
-    Xtilde_tr = np.hstack((sex.reshape(nTraining,1),Pclass.reshape(nTraining,1),SibSp.reshape(nTraining,1),np.ones((nTraining,1)))).T # 4 X 891
-
+    Xtilde_tr = np.hstack((sex,Pclass,SibSp.reshape(nTraining,1),np.ones((nTraining,1)))).T # 7 X 891
+    # print(Xtilde_tr.shape)
+    # print(Xtilde_tr.T[0])
     # Train model using part of homework 3.
-    # Dimensions of Weights should be 4 X 2
-
+    # Dimensions of Weights should be 7 X 2
+    
     W = softmaxRegression(Xtilde_tr,yTraining,epsilon = 0.1,batchSize = 9)
     
+    print(W)
+
     yhatTraining = softMaxActivation(Xtilde_tr.T.dot(W))
     print("Training Accuracy (fPC):",fPC(yTraining,yhatTraining))
 
     # Load testing data
     d = pandas.read_csv("test.csv")
     # y = d.Survived.to_numpy()
-    sex = d.Sex.map({"male":0, "female":1}).to_numpy()
-    Pclass = d.Pclass.to_numpy()
+    sex = getOneHotVectors(d.Sex.map({"male":0, "female":1}).to_numpy())
+    Pclass = getOneHotVectors(d.Pclass.to_numpy())[:,1:]
     SibSp = d.SibSp.to_numpy()
     PassengerId = d.PassengerId.to_numpy()
 
     # yTesting = getOneHotVectors(y)
     nTesting = len(d)
-    Xtilde_te = np.hstack((sex.reshape(nTesting,1),Pclass.reshape(nTesting,1),SibSp.reshape(nTesting,1),np.ones((nTesting,1)))).T # 4 X 418
+    Xtilde_te = np.hstack((sex,Pclass,SibSp.reshape(nTesting,1),np.ones((nTesting,1)))).T # 7 X 418
 
     # Compute predictions on test set
     yhatTesting = softMaxActivation(Xtilde_te.T.dot(W))
@@ -128,3 +133,4 @@ if __name__ == "__main__":
     # df.to_csv('predictions.csv',index = False)
 
     # Current score: 0.77272
+    
