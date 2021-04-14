@@ -29,13 +29,7 @@ def gradfCE(w, XT, y):
 def softMaxActivation(z):
     A = np.exp(z)
     B = np.sum(A, axis=1).reshape(len(z),1)
-    # print("z",z)
-    # print("A ",A)
-    # print("B ",B)
     return A/B
-    # print(z.shape)
-    # print(np.sum(np.exp(z), axis = 1) )
-    # return np.exp(z)/(np.sum(np.exp(z), axis = 1).reshape(len(z),1))
 
 # Given an array of faces (N x M , where N is number of examples and M is number of pixes),
 # return a design matrix Xtilde ((M + 1) x N) whose last row contains all 1s.
@@ -62,7 +56,6 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
     X,y = trainingImages, trainingLabels
 
     # Initialize random weights with a bias = 1 for each category
-    # w = np.random.normal(0, 0.01, (X.shape[0]-1,10))
     w = 0.01*np.random.randn(X.shape[0]-1,10)
     w = np.vstack((w,np.ones((1,10))))
     n = len(y)
@@ -83,18 +76,19 @@ def softmaxRegression (trainingImages, trainingLabels, testingImages, testingLab
             if((i == epochs-1) and (j >= (batches - 20))):
                 yhat = softMaxActivation(X.T[startIndex:endIndex].dot(w))
                 print("Batch number:",j+1,"| Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
-                # print("Training Loss (fCE):",fCE(y[startIndex:endIndex],yhat))
                 print()
 
                 miniBatches.append(j+1)
                 losses.append(fCE(y[startIndex:endIndex],yhat))
             # break
-            
+
+    # Visualizing the Training Loss during the last twenty batches of the last epoch 
     plt.plot(miniBatches,losses)
     plt.xticks(miniBatches, rotation="vertical")
     plt.xlabel("Mini Batches")
     plt.ylabel("Training Loss (fCE)")
     plt.show()
+
     return w
 
 if __name__ == "__main__":
@@ -104,10 +98,9 @@ if __name__ == "__main__":
     testingImages = np.load("fashion_mnist_test_images.npy") # 10000 X 784 (28 X 28)
     testingLabels = np.load("fashion_mnist_test_labels.npy")
 
-    
     # Converting labels into one hot vectors
     yTraining = getOneHotVectors(trainingLabels) # 60000 X 10
-    yTesting = getOneHotVectors(testingLabels)
+    yTesting = getOneHotVectors(testingLabels) # 10000 X 10
 
     # Append a constant 1 term to each example to correspond to the bias terms as well as scale all the other values by 255
     Xtilde_tr = reshapeAndAppend1s(trainingImages/255) #  785 X 60000 
@@ -135,8 +128,7 @@ if __name__ == "__main__":
     #               [100,200,300]])
     # print(softMaxActivation(z))
 
-    # Visualize the vectors
-    
+    # Visualize the weight vectors
     for i in range(10):
         img = W.T[i][:-1].reshape(28,28)
         plt.imshow(img)

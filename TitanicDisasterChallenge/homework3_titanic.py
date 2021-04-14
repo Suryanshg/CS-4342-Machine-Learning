@@ -17,6 +17,7 @@ def getOneHotVectors(y):
     oneHotVectors = np.zeros((y.size,y.max()+1))
     oneHotVectors[np.arange(y.size),y] = 1
     return oneHotVectors
+
 # Converts one hot vectors to labels
 def getLabels(oneHotVectors):
     return np.argmax(oneHotVectors,axis=1)
@@ -24,7 +25,7 @@ def getLabels(oneHotVectors):
 # Computes the gradient of the Cross Entropy Loss, will be used for softmax regression
 def gradfCE(w, XT, y):
     n = len(y)
-    z = XT.dot(w) # n X 10
+    z = XT.dot(w) # n X 2
     yhat = softMaxActivation(z)
     X = XT.T
     return X.dot(yhat - y)/n
@@ -33,9 +34,6 @@ def gradfCE(w, XT, y):
 def softMaxActivation(z):
     A = np.exp(z)
     B = np.sum(A, axis=1).reshape(len(z),1)
-    # print("z",z)
-    # print("A ",A)
-    # print("B ",B)
     return A/B
 
 # Randomly shuffles the data
@@ -49,7 +47,8 @@ def randomizeData(X,y):
 # Then return W.
 def softmaxRegression (trainingData, trainingLabels, epsilon = None, batchSize = None): # batch size 9
     epochs = 30
-    X,y = randomizeData(trainingData, trainingLabels)
+    X,y = trainingData, trainingLabels
+    
     # Initialize random weights with a bias = 1 for each category, there are two categories here
     # w = np.random.normal(0, 0.01, (X.shape[0]-1,10))
     w = 0.01*np.random.randn(X.shape[0]-1,2)
@@ -58,8 +57,7 @@ def softmaxRegression (trainingData, trainingLabels, epsilon = None, batchSize =
     batches = math.ceil(n/batchSize)
     # print(batches)
     
-    # print("w:",w)
-    
+    # print("w:",w)  
     for i in range(epochs):
         X,y = randomizeData(X,y)
         for j in range(batches):
@@ -76,7 +74,6 @@ def softmaxRegression (trainingData, trainingLabels, epsilon = None, batchSize =
             '''
             # break
             
-    
     return w
 
 if __name__ == "__main__":
@@ -91,20 +88,23 @@ if __name__ == "__main__":
     # print("sex:",getOneHotVectors(sex))
     # print("Pclass:",Pclass)
     # print("SibSp:",SibSp)
+
     sex = getOneHotVectors(sex) # Sex is categorical
     Pclass = getOneHotVectors(Pclass)[:,1:] # Pclass is categorical
 
     yTraining = getOneHotVectors(y)
     nTraining = len(d)
     Xtilde_tr = np.hstack((sex,Pclass,SibSp.reshape(nTraining,1),np.ones((nTraining,1)))).T # 7 X 891
+    
     # print(Xtilde_tr.shape)
     # print(Xtilde_tr.T[0])
+
     # Train model using part of homework 3.
     # Dimensions of Weights should be 7 X 2
     
     W = softmaxRegression(Xtilde_tr,yTraining,epsilon = 0.1,batchSize = 9)
     
-    print(W)
+    print("Weights:",W)
 
     yhatTraining = softMaxActivation(Xtilde_tr.T.dot(W))
     print("Training Accuracy (fPC):",fPC(yTraining,yhatTraining))
