@@ -99,5 +99,5 @@ if __name__ == "__main__":
     
 
     test1()
-    # for seed in range(5):
-    #     test2(seed)
+    for seed in range(5):
+        test2(seed)
