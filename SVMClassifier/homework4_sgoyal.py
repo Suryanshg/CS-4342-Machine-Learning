@@ -10,11 +10,17 @@ class SVM4342 ():
     # contain n rows, where n is the number of examples.
     # y should correspondingly be an n-vector of labels (-1 or +1).
     def fit (self, X, y):
+
+        Xtilde = np.hstack((X,np.ones((X.shape[0],1))))
+
         # TODO change these -- they should be np.arrays representing matrices or vectors
-        G = 0
-        P = 0
-        q = 0
-        h = 0
+        G = -1*y.reshape(y.shape[0],1)*Xtilde # G = -1 * Y * Xtilde
+
+        P = np.eye(Xtilde.shape[1]) # Identity
+
+        q = np.zeros(Xtilde.shape[1]) # Zeros
+
+        h = -1*np.ones(Xtilde.shape[0]) # Negative Ones
 
         # Solve -- if the variables above are defined correctly, you can call this as-is:
         sol = solvers.qp(matrix(P, tc='d'), matrix(q, tc='d'), matrix(G, tc='d'), matrix(h, tc='d'))
@@ -23,13 +29,16 @@ class SVM4342 ():
         # To avoid any annoying errors due to broadcasting issues, I recommend
         # that you flatten() the w you retrieve from the solution vector so that
         # it becomes a 1-D np.array.
-        
-        self.w = 0  # TODO change this
-        self.b = 0  # TODO change this
+        w = np.array(sol['x']) # (m + 1) X 1
+        self.w = w[:-1].reshape(1,w.shape[0]-1)  
+        self.b = w[-1]  
 
     # Given a 2-D matrix of examples X, output a vector of predicted class labels
     def predict (self, x):
-        return 0  # TODO fix
+        yhat = x.dot(self.w.reshape(x.shape[1],1)) + self.b
+        yhat[yhat < 0] = -1
+        yhat[yhat > 0] = 1
+        return yhat.reshape(len(yhat))
 
 def test1 ():
     # Set up toy problem
@@ -79,7 +88,16 @@ def test2 (seed):
         print("Passed")
 
 if __name__ == "__main__": 
-    # test1()
+
+    # Tester code
+
+    # X = np.array([ [1,1], [2,1], [1,2], [2,3], [1,4], [2,4] ])
+    # y = np.array([-1,-1,-1,1,1,1])
+    # Xtilde = np.hstack((X,np.ones((X.shape[0],1))))
+    
+    # print(-1*y.reshape(y.shape[0],1)*Xtilde)
+    
+
+    test1()
     # for seed in range(5):
     #     test2(seed)
-    
