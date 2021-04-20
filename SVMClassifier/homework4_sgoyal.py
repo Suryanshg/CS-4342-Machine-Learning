@@ -13,12 +13,12 @@ class SVM4342 ():
 
         Xtilde = np.hstack((X,np.ones((X.shape[0],1))))
 
-        # TODO change these -- they should be np.arrays representing matrices or vectors
+        # np.arrays representing matrices or vectors for solving the QP problem
         G = -1*y.reshape(y.shape[0],1)*Xtilde # G = -1 * Y * Xtilde
 
-        P = np.eye(Xtilde.shape[1]) # Identity
+        P = np.eye(Xtilde.shape[1]) # Identity Matrix
 
-        q = np.zeros(Xtilde.shape[1]) # Zeros
+        q = np.zeros(Xtilde.shape[1]) # Zeros Matrix
 
         h = -1*np.ones(Xtilde.shape[0]) # Negative Ones
 
@@ -79,13 +79,13 @@ def test2 (seed):
     svm = sklearn.svm.SVC(kernel='linear', C=1e15)  # 1e15 -- approximate hard margin
     svm.fit(X, y)
     diff = np.linalg.norm(svm.coef_ - svm4342.w) + np.abs(svm.intercept_ - svm4342.b)
-    print(diff)
+    print("Difference:",diff)
 
     acc = np.mean(svm4342.predict(X) == svm.predict(X))
     print("Acc={}".format(acc))
 
     if acc == 1 and diff < 1e-1:
-        print("Passed")
+        print("Passed test2")
 
 if __name__ == "__main__": 
 
