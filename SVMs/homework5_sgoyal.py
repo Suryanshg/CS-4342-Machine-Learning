@@ -9,17 +9,17 @@ def kerPoly3 (x, xprime):
     pass
 
 def showPredictions (title, svm, X):  # feel free to add other parameters if desired
-    radons,asbestos =  np.meshgrid(np.arange(0,11,0.1),np.arange(54,186))
+    radons,asbestos =  np.meshgrid(np.arange(0,10,0.1),np.arange(54,186))
     # print(radons.reshape(132*11,1))
     # print(asbestos.reshape(132*11,1))
     Xtest = np.hstack((radons.reshape(radons.shape[0]*radons.shape[1],1),asbestos.reshape(asbestos.shape[0]*asbestos.shape[1],1)))
     yTest = svm.predict(Xtest)
 
-    idxs0 = np.nonzero(yTest == 0)[0]
-    idxs1 = np.nonzero(yTest == 1)[0]
+    idxsNeg = np.nonzero(yTest == -1)[0]
+    idxsPos = np.nonzero(yTest == 1)[0]
 
-    plt.scatter(Xtest[idxs0, 0], Xtest[idxs0, 1]) # negative examples
-    plt.scatter(Xtest[idxs1, 0], Xtest[idxs1, 1]) # positive examples
+    plt.scatter(Xtest[idxsNeg, 0], Xtest[idxsNeg, 1]) # negative examples
+    plt.scatter(Xtest[idxsPos, 0], Xtest[idxsPos, 1]) # positive examples
 
     plt.xlabel("Radon")
     plt.ylabel("Asbestos")
@@ -39,10 +39,10 @@ if __name__ == "__main__":
     # print(np.min(X[:,1]))
 
     # Show scatter-plot of the data
-    idxs0 = np.nonzero(y == 0)[0]
-    idxs1 = np.nonzero(y == 1)[0]
-    plt.scatter(X[idxs0, 0], X[idxs0, 1])
-    plt.scatter(X[idxs1, 0], X[idxs1, 1])
+    idxsNeg = np.nonzero(y == -1)[0]
+    idxsPos = np.nonzero(y == 1)[0]
+    plt.scatter(X[idxsNeg, 0], X[idxsNeg, 1]) # Plotting negative examples
+    plt.scatter(X[idxsPos, 0], X[idxsPos, 1]) # Plotting positive examples
     plt.title("Scatterplot of Training Data")
     plt.show()
 
