@@ -9,20 +9,39 @@ def kerPoly3 (x, xprime):
     pass
 
 def showPredictions (title, svm, X):  # feel free to add other parameters if desired
+    radons,asbestos =  np.meshgrid(np.arange(0,11,0.1),np.arange(54,186))
+    # print(radons.reshape(132*11,1))
+    # print(asbestos.reshape(132*11,1))
+    Xtest = np.hstack((radons.reshape(radons.shape[0]*radons.shape[1],1),asbestos.reshape(asbestos.shape[0]*asbestos.shape[1],1)))
+    print(Xtest.shape)
+    yTest = svm.predict(Xtest)
+
+    idxs0 = np.nonzero(yTest == 0)[0]
+    idxs1 = np.nonzero(yTest == 1)[0]
+    
     #plt.scatter(..., ...)  # positive examples
     #plt.scatter(..., ...)  # negative examples
+
+    plt.scatter(Xtest[idxs0, 0], Xtest[idxs0, 1])
+    plt.scatter(Xtest[idxs1, 0], Xtest[idxs1, 1])
+
 
     plt.xlabel("Radon")
     plt.ylabel("Asbestos")
     plt.legend([ "Lung disease", "No lung disease" ])
     plt.title(title)
     plt.show()
+    
 
 if __name__ == "__main__":
     # Load training data
     d = np.load("lung_toy.npy")
     X = d[:,0:2]  # features
     y = d[:,2]  # labels
+
+    
+    # Get max and min for each axis
+    # print(np.min(X[:,1]))
 
     # Show scatter-plot of the data
     idxs0 = np.nonzero(y == 0)[0]
