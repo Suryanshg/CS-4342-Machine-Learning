@@ -5,10 +5,7 @@ import matplotlib.pyplot as plt
 def phiPoly3 (x):
     pass
 
-def kerPoly3 (x, y):
-    pass
-
-def kerRBF (x, y):
+def kerPoly3 (x, xprime):
     pass
 
 def showPredictions (title, svm, X):  # feel free to add other parameters if desired
