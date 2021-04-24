@@ -1,19 +1,25 @@
 import sklearn.svm
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
-def phiPoly3 (x):
-    pass
+def phiPoly3(x):
+    r,a = x[0],x[1]
+    # return np.array([1, math.sqrt(3)*r, math.sqrt(3)*a, math.sqrt(6)*r*a, math.sqrt(3)*r*r, math.sqrt(3)*a*a, math.sqrt(3)*r*r*a, math.sqrt(3)*r*a*a, r**3, a**3])
+    return [1, math.sqrt(3)*r, math.sqrt(3)*a, math.sqrt(6)*r*a, math.sqrt(3)*r*r, math.sqrt(3)*a*a, math.sqrt(3)*r*r*a, math.sqrt(3)*r*a*a, r**3, a**3]
+    # return np.array([x[0],x[1],x[0]*x[1]])
 
 def kerPoly3 (x, xprime):
     pass
 
-def showPredictions (title, svm, X):  # feel free to add other parameters if desired
+def showPredictions (title, Xtest, yTest):  # feel free to add other parameters if desired
+    '''
     radons,asbestos =  np.meshgrid(np.arange(0,10,0.1),np.arange(54,186))
     # print(radons.reshape(132*11,1))
     # print(asbestos.reshape(132*11,1))
     Xtest = np.hstack((radons.reshape(radons.shape[0]*radons.shape[1],1),asbestos.reshape(asbestos.shape[0]*asbestos.shape[1],1)))
     yTest = svm.predict(Xtest)
+    '''
 
     idxsNeg = np.nonzero(yTest == -1)[0]
     idxsPos = np.nonzero(yTest == 1)[0]
@@ -38,6 +44,7 @@ if __name__ == "__main__":
     # Get max and min for each axis
     # print(np.min(X[:,1]))
 
+    '''
     # Show scatter-plot of the data
     idxsNeg = np.nonzero(y == -1)[0]
     idxsPos = np.nonzero(y == 1)[0]
@@ -45,16 +52,44 @@ if __name__ == "__main__":
     plt.scatter(X[idxsPos, 0], X[idxsPos, 1]) # Plotting positive examples
     plt.title("Scatterplot of Training Data")
     plt.show()
+    '''
 
     # (a) Train linear SVM using sklearn
     svmLinear = sklearn.svm.SVC(kernel='linear', C=0.01)
     svmLinear.fit(X, y)
-    showPredictions("Linear", svmLinear, X)
-
-    # (b) Poly-3 using explicit transformation phiPoly3
+    radons,asbestos =  np.meshgrid(np.arange(0,10,0.1),np.arange(54,186))
+    # print(radons.reshape(132*11,1))
+    # print(asbestos.reshape(132*11,1))
+    Xtest = np.hstack((radons.reshape(radons.shape[0]*radons.shape[1],1),asbestos.reshape(asbestos.shape[0]*asbestos.shape[1],1)))
+    yTest = svmLinear.predict(Xtest)
+    # showPredictions("Linear", Xtest, yTest)
     
+    # (b) Poly-3 using explicit transformation phiPoly3
+
+    Xtilde_tr = []
+    for x in X:
+        Xtilde_tr.append(phiPoly3(x))
+    Xtilde_tr = np.array(Xtilde_tr)
+    # Xtilde = phiPoly3(X)
+    # print(Xtilde_tr.shape)
+
+    svmExplicitTransform = sklearn.svm.SVC(kernel='linear', C=0.01)
+    svmExplicitTransform.fit(Xtilde_tr,y)
+    print("Done training")
+    Xtilde_te = []
+    for x in Xtest:
+        Xtilde_te.append(phiPoly3(x))
+    Xtilde_te = np.array(Xtilde_te)
+    # print(Xtilde_te.shape)
+    yTest = svmExplicitTransform.predict(Xtilde_te)
+    showPredictions("Explicit Transformation", Xtest, yTest)
     # (c) Poly-3 using kernel matrix constructed by kernel function kerPoly3
     
     # (d) Poly-3 using sklearn's built-in polynomial kernel
-
+    '''
+    svmPolyKernel = sklearn.svm.SVC(kernel='poly', gamma = 1, coef0=1, degree=3)
+    svmPolyKernel.fit(X,y)
+    yTest = svmPolyKernel.predict(Xtest)
+    showPredictions("Built-in Poly Kernel", Xtest, yTest)
+    '''
     # (e) RBF using sklearn's built-in polynomial kernel
