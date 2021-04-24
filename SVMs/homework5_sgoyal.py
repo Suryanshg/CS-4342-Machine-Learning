@@ -10,7 +10,7 @@ def phiPoly3(x):
     # return np.array([x[0],x[1],x[0]*x[1]])
 
 def kerPoly3 (x, xprime):
-    pass
+    return math.pow(1+x.T.dot(xprime),3)
 
 def showPredictions (title, Xtest, yTest):  # feel free to add other parameters if desired
     '''
@@ -75,16 +75,37 @@ if __name__ == "__main__":
 
     svmExplicitTransform = sklearn.svm.SVC(kernel='linear', C=0.01)
     svmExplicitTransform.fit(Xtilde_tr,y)
-    print("Done training")
+    # print("Done training")
     Xtilde_te = []
     for x in Xtest:
         Xtilde_te.append(phiPoly3(x))
     Xtilde_te = np.array(Xtilde_te)
     # print(Xtilde_te.shape)
     yTest = svmExplicitTransform.predict(Xtilde_te)
-    showPredictions("Explicit Transformation", Xtest, yTest)
+    # showPredictions("Explicit Transformation", Xtest, yTest)
     # (c) Poly-3 using kernel matrix constructed by kernel function kerPoly3
+    '''
+    KTrain = []
+    for x in X:
+        row = []
+        for xprime in X:
+            row.append(kerPoly3(x,xprime))
+        KTrain.append(np.array(row))
+    KTrain = np.array(KTrain)
+    KTest = []
+    for x in Xtest:
+        row = []
+        for xprime in X:
+            row.append(kerPoly3(x,xprime))
+        KTest.append(np.array(row))
+    KTest = np.array(KTest)
     
+    svmKernelTransform = sklearn.svm.SVC(kernel = 'precomputed')
+    svmKernelTransform.fit(KTrain,y)
+    yTest = svmKernelTransform.predict(KTest)
+    showPredictions("Poly Kernel", Xtest, yTest)
+    '''
+
     # (d) Poly-3 using sklearn's built-in polynomial kernel
     '''
     svmPolyKernel = sklearn.svm.SVC(kernel='poly', gamma = 1, coef0=1, degree=3)
@@ -93,3 +114,13 @@ if __name__ == "__main__":
     showPredictions("Built-in Poly Kernel", Xtest, yTest)
     '''
     # (e) RBF using sklearn's built-in polynomial kernel
+    svmRBF1 = sklearn.svm.SVC(kernel = 'rbf', gamma = 0.1)
+    svmRBF1.fit(X,y)
+    yTest = svmRBF1.predict(Xtest)
+    showPredictions("RBF- gamma = 0.1",Xtest,yTest)
+
+    svmRBF2 = sklearn.svm.SVC(kernel = 'rbf', gamma = 0.03)
+    svmRBF2.fit(X,y)
+    yTest = svmRBF2.predict(Xtest)
+    showPredictions("RBF- gamma = 0.03",Xtest,yTest)
+
