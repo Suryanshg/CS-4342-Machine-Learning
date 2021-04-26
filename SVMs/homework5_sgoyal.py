@@ -3,12 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+# Takes the Training Data (n X 2) and outputs the Transformed Training Data (n X 10)
 def phiPoly3(x):
-    r,a = x[0],x[1]
-    # return np.array([1, math.sqrt(3)*r, math.sqrt(3)*a, math.sqrt(6)*r*a, math.sqrt(3)*r*r, math.sqrt(3)*a*a, math.sqrt(3)*r*r*a, math.sqrt(3)*r*a*a, r**3, a**3])
-    return [1, math.sqrt(3)*r, math.sqrt(3)*a, math.sqrt(6)*r*a, math.sqrt(3)*r*r, math.sqrt(3)*a*a, math.sqrt(3)*r*r*a, math.sqrt(3)*r*a*a, r**3, a**3]
-    # return np.array([x[0],x[1],x[0]*x[1]])
+    r,a = x[:,0],x[:,1]
+    n = x.shape[0]
+    ones = np.ones(n)
+    # r,a = x[0],x[1]
+    return np.array([ones, math.sqrt(3)*r, math.sqrt(3)*a, math.sqrt(6)*r*a, math.sqrt(3)*r*r, math.sqrt(3)*a*a, math.sqrt(3)*r*r*a, math.sqrt(3)*r*a*a, r**3, a**3]).T
 
+# Transforms the 
 def kerPoly3 (x, xprime):
     return math.pow(1+x.T.dot(xprime),3)
 
@@ -44,8 +47,9 @@ if __name__ == "__main__":
     # Get max and min for each axis
     # print(np.min(X[:,1]))
 
-    '''
+    
     # Show scatter-plot of the data
+    '''
     idxsNeg = np.nonzero(y == -1)[0]
     idxsPos = np.nonzero(y == 1)[0]
     plt.scatter(X[idxsNeg, 0], X[idxsNeg, 1]) # Plotting negative examples
@@ -54,18 +58,25 @@ if __name__ == "__main__":
     plt.show()
     '''
 
+    # print(X.shape)
+
     # (a) Train linear SVM using sklearn
+    
     svmLinear = sklearn.svm.SVC(kernel='linear', C=0.01)
     svmLinear.fit(X, y)
     radons,asbestos =  np.meshgrid(np.arange(0,10,0.1),np.arange(54,186))
+    # A, B = np.meshgrid(X,X)
+    # print(A.T.reshape(100))
+    # print(B.T.shape)
     # print(radons.reshape(132*11,1))
     # print(asbestos.reshape(132*11,1))
     Xtest = np.hstack((radons.reshape(radons.shape[0]*radons.shape[1],1),asbestos.reshape(asbestos.shape[0]*asbestos.shape[1],1)))
     yTest = svmLinear.predict(Xtest)
-    # showPredictions("Linear", Xtest, yTest)
+    showPredictions("Linear", Xtest, yTest)
     
     # (b) Poly-3 using explicit transformation phiPoly3
-
+    '''
+    print(X)
     Xtilde_tr = []
     for x in X:
         Xtilde_tr.append(phiPoly3(x))
@@ -83,8 +94,12 @@ if __name__ == "__main__":
     # print(Xtilde_te.shape)
     yTest = svmExplicitTransform.predict(Xtilde_te)
     # showPredictions("Explicit Transformation", Xtest, yTest)
-    # (c) Poly-3 using kernel matrix constructed by kernel function kerPoly3
     '''
+
+    Xtilde_tr = phiPoly3(X)
+
+    # (c) Poly-3 using kernel matrix constructed by kernel function kerPoly3
+    
     KTrain = []
     for x in X:
         row = []
@@ -92,6 +107,28 @@ if __name__ == "__main__":
             row.append(kerPoly3(x,xprime))
         KTrain.append(np.array(row))
     KTrain = np.array(KTrain)
+    
+    # print(KTrain.shape)
+
+    '''
+    A = np.array([[1,2],[3,4],[5,6]])
+    # AA, BB = np.meshgrid(A,A)
+    # print(A)
+    # print(">>>",AA)
+    # print(">>>",BB)
+    B1 = np.repeat(A,3,axis=0).reshape(3,3,2)
+    print(B1)
+    B2 = np.swapaxes(B1,0,1)
+    print(B2)
+    C = np.sum(B1*B2,axis=2)
+    print(np.power(C,3))
+    '''
+    B1 = np.repeat(X,X.shape[0],axis=0).reshape(X.shape[0],X.shape[0],X.shape[1])
+    B2 = np.swapaxes(B1,0,1)
+    KTrain2 = np.power(1 + np.sum(B1*B2,axis=2),3)
+    # print(KTrain = KTrain2)
+    
+    # TODO Kernelize Ktest
     KTest = []
     for x in Xtest:
         row = []
@@ -99,12 +136,17 @@ if __name__ == "__main__":
             row.append(kerPoly3(x,xprime))
         KTest.append(np.array(row))
     KTest = np.array(KTest)
+    print(KTest.shape)
+    
+
+    
     
     svmKernelTransform = sklearn.svm.SVC(kernel = 'precomputed')
-    svmKernelTransform.fit(KTrain,y)
+    svmKernelTransform.fit(KTrain2,y)
     yTest = svmKernelTransform.predict(KTest)
     showPredictions("Poly Kernel", Xtest, yTest)
-    '''
+    
+    
 
     # (d) Poly-3 using sklearn's built-in polynomial kernel
     '''
