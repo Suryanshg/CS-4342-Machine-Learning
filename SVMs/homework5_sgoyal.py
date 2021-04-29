@@ -29,9 +29,7 @@ def kerRBF(x, xprime, gamma):
     K = np.exp(-1*gamma*D)
     return K
 
-def kerPoly31 (x, xprime):
-    return math.pow(1+x.T.dot(xprime),3)
-
+# Visualizes the predictions of the SVMs on the test data
 def showPredictions (title, Xtest, yTest):  # feel free to add other parameters if desired
 
     idxsNeg = np.nonzero(yTest == -1)[0]
@@ -42,7 +40,7 @@ def showPredictions (title, Xtest, yTest):  # feel free to add other parameters 
 
     plt.xlabel("Radon")
     plt.ylabel("Asbestos")
-    plt.legend([ "Lung disease", "No lung disease" ])
+    plt.legend(["No lung disease", "Lung disease" ])
     plt.title(title)
     plt.show()
     
