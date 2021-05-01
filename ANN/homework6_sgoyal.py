@@ -7,17 +7,28 @@ NUM_HIDDEN = 40  # Number of hidden neurons
 NUM_OUTPUT = 10  # Number of output neurons
 NUM_CHECK = 5  # Number of examples on which to check the gradient
 
-# Relu Activation function
+# Converts labels into one hot vectors
+def getOneHotVectors(y):
+    oneHotVectors = np.zeros((y.size,y.max()+1))
+    oneHotVectors[np.arange(y.size),y] = 1
+    return oneHotVectors
+
+# Relu Activation function, z = (40,n)
 def relu(z):
-    pass
+    z[z<=0] = 0
+    return z
 
-# Softmax Activation function
+# Softmax Activation function, z = (10,n)
 def softmax(z):
-    pass
+    A = np.exp(z)
+    B = np.sum(A, axis = 0)
+    return A/B
 
-# Relu prime on the input
+# Relu prime activation on the input, z = (40,n)
 def reluprime(z):
-    pass
+    z[z<=0] = 0
+    z[z>0] = 1
+    return z
 
 # Given a vector w containing all the weights and biased vectors, extract
 # and return the individual weights and biases W1, b1, W2, b2.
@@ -45,12 +56,35 @@ def loadData (which):
     labels = np.load("fashion_mnist_{}_labels.npy".format(which))
     return images, labels
 
+# Computes the Percent Correct Accuracy
+def fPC(y,yhat):
+    labelY = np.argmax(y,axis=1)
+    labelYhat = np.argmax(yhat,axis=1)
+    return np.mean(labelY == labelYhat)
+
+# Calculates yhat for a given data and weights and biases associated
+def getYHat(X,w):
+    # Shape of X is (n,784)
+    W1, b1, W2, b2 = unpack(w)
+
+    b1 = b1.reshape(NUM_HIDDEN,1)
+    b2 = b2.reshape(NUM_OUTPUT,1)
+
+    # Calculating according to the equations
+    z1 = W1.dot(X.T) + b1 # (40,n)
+    h = relu(z1) # (40,n)
+    z2 = W2.dot(h) + b2
+    yhat = softmax(z2) # (10,n)
+    
+    return yhat.T #(n,10)
+
 # Given training images X, associated labels Y, and a vector of combined weights
 # and bias terms w, compute and return the cross-entropy (CE) loss. You might
 # want to extend this function to return multiple arguments (in which case you
 # will also need to modify slightly the gradient check code below).
 def fCE (X, Y, w):
-    W1, b1, W2, b2 = unpack(w)
+    yhat = getYHat(X,w) # (n,10)
+    cost = -np.sum(Y * np.log(yhat))/len(Y)
     return cost
 
 # Given training images X, associated labels Y, and a vector of combined weights
@@ -59,16 +93,53 @@ def fCE (X, Y, w):
 # will also need to modify slightly the gradient check code below).
 def gradCE (X, Y, w):
     W1, b1, W2, b2 = unpack(w)
+
+    b1 = b1.reshape(NUM_HIDDEN,1)
+    b2 = b2.reshape(NUM_OUTPUT,1)
+
+    # Calculating according to the equations
+    z1 = W1.dot(X.T) + b1 # (40,n)
+    h = relu(z1) # (40,n)
+    z2 = W2.dot(h) + b2
+    yhat = softmax(z2).T # (n,10)
+
+    # Calculating gradients according to the equations
+    gradW2 =  (yhat - Y).T.dot(h.T) # (10,40)
+    gradb2 = np.average((yhat - Y).T, axis = 1).reshape(NUM_OUTPUT,1) # (10,1)
+
+    gT = ((yhat - Y).dot(W2))*reluprime(z1.T) # (n,40)
+    g = gT.T # (40,n)
+
+    gradW1 = g.dot(X) # (40,784)
+    gradb1 =  np.average(g, axis = 1).reshape(NUM_HIDDEN,1) # (40,1)
+
+    grad = pack(gradW1,gradb1,gradW2,gradb2)
     return grad
 
 # Given training and testing datasets and an initial set of weights/biases b,
 # train the NN.
-def train (trainX, trainY, testX, testY, w):
+def train (trainX, trainY, testX, testY, w, epsilon, miniBatchSize, epochs, alpha):
+    W1,b1,W2,b2 = unpack(w)
+    b1 = b1.reshape(NUM_HIDDEN,1)
+    b2 = b2.reshape(NUM_OUTPUT,1)
     pass
 
 # Optimize the hyperparameters
-def findBestHyperparameters():
-    pass
+def findBestHyperparameters(trainX, trainY, valX, valY):
+    bestNumUnitsInHiddenLayer = 0 # Keep Default
+    bestEpsilon = 0
+    bestMiniBatchSize = 0
+    bestNumEpochs = 0
+    bestAlpha = 0 # Keep 0.01
+    bestAcc = 0
+    
+    # unitsInHiddenLayer = [30,40,50]
+    epochs = [20, 30, 40]
+    epsilons = [0.01, 0.05]
+    miniBatchSizes = [32, 64]
+    alphas = [0.01]
+
+    return bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, bestAlpha
 
 # Randomly shuffles the data and returns 20% of that as validation data
 def getValidationData(X,y):
@@ -85,27 +156,39 @@ if __name__ == "__main__":
 
     # Generating Validation Data
     valX, valY = getValidationData(trainX, trainY)
+    
+    # Scaling and Transposing Input Data (784,n)
+    trainX = trainX/255 #.T/255
+    testX = testX/255 #.T/255
+    valX = valX/255 #.T/255
+
+
+    trainY = getOneHotVectors(trainY)
+    testY = getOneHotVectors(testY)
+    valY = getOneHotVectors(valY)
 
     # Initialize weights randomly
     W1 = 2*(np.random.random(size=(NUM_HIDDEN, NUM_INPUT))/NUM_INPUT**0.5) - 1./NUM_INPUT**0.5 # (40,784)
     b1 = 0.01 * np.ones(NUM_HIDDEN) # (40,)
     W2 = 2*(np.random.random(size=(NUM_OUTPUT, NUM_HIDDEN))/NUM_HIDDEN**0.5) - 1./NUM_HIDDEN**0.5 # (10,40)
-    b2 = 0.01 * np.ones(NUM_OUTPUT) #(10,)
+    b2 = 0.01 * np.ones(NUM_OUTPUT) # (10,)
 
     # Concatenate all the weights and biases into one vector; this is necessary for check_grad
     w = pack(W1, b1, W2, b2)
 
-
-    '''
+    # z = np.array([[1,2,3],[-1,-2,-3],[0,0,-1]])
+    # print(reluprime(z))
+    print(fCE(trainX, trainY, w))
+    
     # Check that the gradient is correct on just a few examples (randomly drawn).
     idxs = np.random.permutation(trainX.shape[0])[0:NUM_CHECK]
     print(scipy.optimize.check_grad(lambda w_: fCE(np.atleast_2d(trainX[idxs,:]), np.atleast_2d(trainY[idxs,:]), w_), \
                                     lambda w_: gradCE(np.atleast_2d(trainX[idxs,:]), np.atleast_2d(trainY[idxs,:]), w_), \
                                     w))
-    '''
-
+    
+    
     # Hyperparameter Tuning
 
 
     # Train the network using SGD.
-    train(trainX, trainY, testX, testY, w)
+    # train(trainX, trainY, testX, testY, w)
