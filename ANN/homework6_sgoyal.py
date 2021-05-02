@@ -24,6 +24,7 @@ def softmax(z):
     B = np.sum(A, axis = 0)
     return A/B
 
+
 # Relu prime activation on the input, z = (40,n)
 def reluprime(z):
     z[z<=0] = 0
@@ -71,12 +72,12 @@ def getYHat(X,w):
     b2 = b2.reshape(NUM_OUTPUT,1)
 
     # Calculating according to the equations
-    z1 = W1.dot(X.T) + b1 # (40,n)
+    z1 = W1.dot(X) + b1 # (40,n)
     h = relu(z1) # (40,n)
     z2 = W2.dot(h) + b2
-    yhat = softmax(z2) # (10,n)
+    yhatT = softmax(z2) # (10,n)
     
-    return yhat.T #(n,10)
+    return yhatT.T #(n,10)
 
 # Given training images X, associated labels Y, and a vector of combined weights
 # and bias terms w, compute and return the cross-entropy (CE) loss. You might
@@ -97,20 +98,21 @@ def gradCE (X, Y, w):
     b1 = b1.reshape(NUM_HIDDEN,1)
     b2 = b2.reshape(NUM_OUTPUT,1)
 
-    # Calculating according to the equations
-    z1 = W1.dot(X.T) + b1 # (40,n)
+    # Performing foward propagation according to the equations
+    z1 = W1.dot(X) + b1 # (40,n)
     h = relu(z1) # (40,n)
     z2 = W2.dot(h) + b2
-    yhat = softmax(z2).T # (n,10)
+    yhatT = softmax(z2) # (10,n)
 
+    # Backward Propagation
     # Calculating gradients according to the equations
-    gradW2 =  (yhat - Y).T.dot(h.T) # (10,40)
-    gradb2 = np.average((yhat - Y).T, axis = 1).reshape(NUM_OUTPUT,1) # (10,1)
+    gradW2 =  (yhatT - Y.T).dot(h.T)/Y.shape[0] # (10,40)
+    gradb2 = np.average((yhatT - Y.T), axis = 1).reshape(NUM_OUTPUT,1) # (10,1)
 
-    gT = ((yhat - Y).dot(W2))*reluprime(z1.T) # (n,40)
+    gT = ((yhatT.T - Y).dot(W2))*reluprime(z1.T) # (n,40)
     g = gT.T # (40,n)
 
-    gradW1 = g.dot(X) # (40,784)
+    gradW1 = g.dot(X.T)/Y.shape[0] # (40,784)
     gradb1 =  np.average(g, axis = 1).reshape(NUM_HIDDEN,1) # (40,1)
 
     grad = pack(gradW1,gradb1,gradW2,gradb2)
@@ -158,9 +160,9 @@ if __name__ == "__main__":
     valX, valY = getValidationData(trainX, trainY)
     
     # Scaling and Transposing Input Data (784,n)
-    trainX = trainX/255 #.T/255
-    testX = testX/255 #.T/255
-    valX = valX/255 #.T/255
+    trainX = trainX.T/255
+    testX = testX.T/255
+    valX = valX.T/255
 
 
     trainY = getOneHotVectors(trainY)
@@ -177,13 +179,14 @@ if __name__ == "__main__":
     w = pack(W1, b1, W2, b2)
 
     # z = np.array([[1,2,3],[-1,-2,-3],[0,0,-1]])
-    # print(reluprime(z))
+    # print(softmax(z))
     print(fCE(trainX, trainY, w))
+    
     
     # Check that the gradient is correct on just a few examples (randomly drawn).
     idxs = np.random.permutation(trainX.shape[0])[0:NUM_CHECK]
-    print(scipy.optimize.check_grad(lambda w_: fCE(np.atleast_2d(trainX[idxs,:]), np.atleast_2d(trainY[idxs,:]), w_), \
-                                    lambda w_: gradCE(np.atleast_2d(trainX[idxs,:]), np.atleast_2d(trainY[idxs,:]), w_), \
+    print(scipy.optimize.check_grad(lambda w_: fCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_), \
+                                    lambda w_: gradCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_), \
                                     w))
     
     
