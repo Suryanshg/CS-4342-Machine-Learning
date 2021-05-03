@@ -136,7 +136,7 @@ def randomizeData(X,y):
 # Given training and testing datasets and an initial set of weights/biases b,
 # train the NN.
 # TODO: replace w param with hidden units
-def train(trainX, trainY, hiddenUnits, epsilon, miniBatchSize, epochs, alpha):
+def train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epochs, alpha):
     # trainX is (784,60000)
 
     # Initialize weights randomly
@@ -175,17 +175,23 @@ def train(trainX, trainY, hiddenUnits, epsilon, miniBatchSize, epochs, alpha):
             
            
             # Updating the weights and biases
-            W1 = W1 - epsilon * (gradW1 - ((alpha * W1)/len(miniY)))
-            b1 = b1 - epsilon * (gradb1 - ((alpha * b1)/len(miniY)))
-            W2 = W2 - epsilon * (gradW2 - ((alpha * W2)/len(miniY)))
-            b2 = b2 - epsilon * (gradb2 - ((alpha * b2)/len(miniY)))
+            W1 = W1 - epsilon * (gradW1 + ((alpha * W1)/len(miniY)))
+            b1 = b1 - epsilon * (gradb1) # - ((alpha * b1)/len(miniY)))
+            W2 = W2 - epsilon * (gradW2 + ((alpha * W2)/len(miniY)))
+            b2 = b2 - epsilon * (gradb2) # - ((alpha * b2)/len(miniY)))
 
             w = pack(W1,b1,W2,b2)
+        if(epoch + 1 >= epochs - 20):
+            
+            testYHat = getYHat(testX, w, hiddenUnits )
+            testAcc = fPC(testY,testYHat)*100
+            testLoss = fCE(testX,testY,w, hiddenUnits)
+            print("Epoch: {}, Test Accuracy: {}, Test Cross Entropy Loss: {}".format(epoch + 1, testAcc, testLoss ))
 
     return w
 
 # Optimize the hyperparameters
-def findBestHyperparameters(trainX, trainY, valX, valY):
+def findBestHyperparameters(trainX, trainY, valX, valY, testX, testY):
     bestNumUnitsInHiddenLayer = 0 
     bestEpsilon = 0
     bestMiniBatchSize = 0
@@ -194,7 +200,7 @@ def findBestHyperparameters(trainX, trainY, valX, valY):
     bestAcc = 0
     
     unitsInHiddenLayer = [30,40,50]
-    epochs = [20, 30, 40]
+    epochs = [30, 40, 50]
     epsilons = [0.01, 0.05]
     miniBatchSizes = [32, 64, 128, 256]
     alpha = 0.01
@@ -205,7 +211,7 @@ def findBestHyperparameters(trainX, trainY, valX, valY):
                 for epoch in epochs:
 
                     # TODO: replace arg w with hidden units
-                    trainedW = train(trainX, trainY, hiddenUnits, epsilon, miniBatchSize, epoch, alpha)
+                    trainedW = train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epoch, alpha)
                     valYHat = getYHat(valX, trainedW, hiddenUnits)
 
                     curAcc = fPC(valY, valYHat)
@@ -272,20 +278,25 @@ if __name__ == "__main__":
     
     
     # Hyperparameter Tuning
+    '''
     print()
-    bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha = findBestHyperparameters(trainX, trainY, valX, valY)
+    bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha = findBestHyperparameters(trainX, trainY, valX, valY, testX, testY)
     print("bestNumUnitsInHiddenLayer",bestNumUnitsInHiddenLayer)
     print("bestEpsilon", bestEpsilon)
     print("bestMiniBatchSize", bestMiniBatchSize)
     print("bestNumEpochs", bestNumEpochs)
     print("alpha", alpha)
-    
+    '''
+    # Values obtained after hyperparam tuning
+    bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha = 50, 0.05, 32, 40, 0.01
 
     # trainedW = train(trainX,trainY, w, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha)
-    trainedW = train(trainX,trainY, bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha)
+    trainedW = train(trainX,trainY, testX, testY, bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha)
 
     testYHat = getYHat(testX, trainedW, bestNumUnitsInHiddenLayer )
+    print("---------------------------")
     print("Test Accuracy:",fPC(testY,testYHat)*100)
+    print("Test Cross Entropy Loss:",fCE(testX,testY,trainedW,bestNumUnitsInHiddenLayer))
     # Train the network using SGD.
     # print(train(trainX, trainY, w, 0.01, 128, 10 ,0.01).shape)
     
