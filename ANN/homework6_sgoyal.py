@@ -36,7 +36,6 @@ def reluprime(z):
 # Given a vector w containing all the weights and biased vectors, extract
 # and return the individual weights and biases W1, b1, W2, b2.
 # This is useful for performing a gradient check with check_grad.
-# TODO: add param hidden units
 def unpack (w, hiddenUnits):
     endW1 = hiddenUnits * NUM_INPUT
     endb1 = endW1 + hiddenUnits
@@ -67,10 +66,8 @@ def fPC(y,yhat):
     return np.mean(labelY == labelYhat)
 
 # Calculates yhat for a given data and weights and biases associated
-# TODO: add param hidden units, recheck
 def getYHat(X,w,hiddenUnits):
     # Shape of X is (n,784)
-    # TODO: add arg hidden units
     W1, b1, W2, b2 = unpack(w, hiddenUnits)
 
     b1 = b1.reshape(hiddenUnits,1)
@@ -97,10 +94,8 @@ def fCE (X, Y, w, hiddenUnits):
 # and bias terms w, compute and return the gradient of fCE. You might
 # want to extend this function to return multiple arguments (in which case you
 # will also need to modify slightly the gradient check code below).
-# TODO: add param hidden units
 def gradCE (X, Y, w, hiddenUnits):
 
-    # TODO: add arg hidden units
     W1, b1, W2, b2 = unpack(w,hiddenUnits)
 
     # X here is (784,n)
@@ -116,13 +111,13 @@ def gradCE (X, Y, w, hiddenUnits):
     # Backward Propagation
     # Calculating gradients according to the equations
     gradW2 =  (yhatT - Y.T).dot(h.T)/Y.shape[0] # (10,40)
-    gradb2 = np.average((yhatT - Y.T), axis = 1).reshape(NUM_OUTPUT,1) # (10,1)
+    gradb2 = np.mean((yhatT - Y.T), axis = 1).reshape(NUM_OUTPUT,1) # (10,1)
 
     gT = ((yhatT.T - Y).dot(W2))*reluprime(z1.T) # (n,40)
     g = gT.T # (40,n)
 
     gradW1 = g.dot(X.T)/Y.shape[0] # (40,784)
-    gradb1 =  np.average(g, axis = 1).reshape(hiddenUnits,1) # (40,1)
+    gradb1 =  np.mean(g, axis = 1).reshape(hiddenUnits,1) # (40,1)
 
     grad = pack(gradW1,gradb1,gradW2,gradb2)
     return grad
@@ -135,9 +130,8 @@ def randomizeData(X,y):
 
 # Given training and testing datasets and an initial set of weights/biases b,
 # train the NN.
-# TODO: replace w param with hidden units
-def train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epochs, alpha):
-    # trainX is (784,60000)
+def train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epochs, alpha, printLast20Epochs = False):
+    # shape of trainX here is (784,60000)
 
     # Initialize weights randomly
     W1 = 2*(np.random.random(size=(hiddenUnits, NUM_INPUT))/NUM_INPUT**0.5) - 1./NUM_INPUT**0.5 # (40,784)
@@ -160,14 +154,12 @@ def train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epo
             miniY = y[startIndex:endIndex]
 
             # Extracting Weights and biases
-            # TODO: add arg hidden units
             W1,b1,W2,b2 = unpack(w, hiddenUnits)
             b1 = b1.reshape(hiddenUnits,1)
             b2 = b2.reshape(NUM_OUTPUT,1)
 
             grad = gradCE(miniX,miniY,w,hiddenUnits)
 
-            # TODO: add arg hidden units
             gradW1, gradb1, gradW2, gradb2 = unpack(grad, hiddenUnits)
 
             gradb1 = gradb1.reshape(hiddenUnits,1) # (40,1)
@@ -181,12 +173,15 @@ def train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epo
             b2 = b2 - epsilon * (gradb2) # - ((alpha * b2)/len(miniY)))
 
             w = pack(W1,b1,W2,b2)
-        if(epoch + 1 >= epochs - 20):
+
+        
+        if((printLast20Epochs) and (epoch + 1 >= epochs - 20)):
             
             testYHat = getYHat(testX, w, hiddenUnits )
             testAcc = fPC(testY,testYHat)*100
             testLoss = fCE(testX,testY,w, hiddenUnits)
             print("Epoch: {}, Test Accuracy: {}, Test Cross Entropy Loss: {}".format(epoch + 1, testAcc, testLoss ))
+        
 
     return w
 
@@ -196,21 +191,19 @@ def findBestHyperparameters(trainX, trainY, valX, valY, testX, testY):
     bestEpsilon = 0
     bestMiniBatchSize = 0
     bestNumEpochs = 0
-    # bestAlpha = 0 # Keep 0.01
     bestAcc = 0
     
-    unitsInHiddenLayer = [30,40,50]
-    epochs = [30, 40, 50]
-    epsilons = [0.01, 0.05]
-    miniBatchSizes = [32, 64, 128, 256]
-    alpha = 0.01
+    unitsInHiddenLayer = [50]
+    epochs = [50, 60]
+    epsilons = [0.01, 0.05, 0.1]
+    miniBatchSizes = [32, 64]
+    alpha = 0.01 # Considering only one value for alpha
 
     for hiddenUnits in unitsInHiddenLayer:
         for epsilon in epsilons:
             for miniBatchSize in miniBatchSizes:
                 for epoch in epochs:
 
-                    # TODO: replace arg w with hidden units
                     trainedW = train(trainX, trainY, testX, testY, hiddenUnits, epsilon, miniBatchSize, epoch, alpha)
                     valYHat = getYHat(valX, trainedW, hiddenUnits)
 
@@ -227,12 +220,13 @@ def findBestHyperparameters(trainX, trainY, valX, valY, testX, testY):
 
     return  bestNumUnitsInHiddenLayer,bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha
 
-# Randomly shuffles the data and returns 20% of that as validation data
-def getValidationData(X,y):
+# Randomly shuffles the data and returns 20% of that as validation data and 80% of that as new training data
+def separateTrainingAndValidationData(X,y):
     n = len(y)
     randomizedIndex = np.random.permutation(n)
     valX, valY = X[randomizedIndex][:n//5],y[randomizedIndex][:n//5]
-    return valX, valY
+    trainX, trainY = X[randomizedIndex][n//5:],y[randomizedIndex][n//5:]
+    return trainX, trainY, valX, valY
 
 if __name__ == "__main__":
     # Load data
@@ -240,10 +234,10 @@ if __name__ == "__main__":
         trainX, trainY = loadData("train") # (60000,784) , (60000,)
         testX, testY = loadData("test") # (10000,784), (10000,)
 
-    # Generating Validation Data
-    valX, valY = getValidationData(trainX, trainY)
+    # Separating Training and Validation Data
+    trainX, trainY, valX, valY = separateTrainingAndValidationData(trainX, trainY)
     
-    # Scaling and Transposing Input Data (784,n)
+    # Scaling and Transposing Input Data (X) into the shape (784,n)
     trainX = trainX.T/255
     testX = testX.T/255
     valX = valX.T/255
@@ -253,32 +247,26 @@ if __name__ == "__main__":
     valY = getOneHotVectors(valY)
     
     # Initialize weights randomly
-    # W1 = 2*(np.random.random(size=(NUM_HIDDEN, NUM_INPUT))/NUM_INPUT**0.5) - 1./NUM_INPUT**0.5 # (40,784)
-    # b1 = 0.01 * np.ones(NUM_HIDDEN) # (40,)
-    # W2 = 2*(np.random.random(size=(NUM_OUTPUT, NUM_HIDDEN))/NUM_HIDDEN**0.5) - 1./NUM_HIDDEN**0.5 # (10,40)
-    # b2 = 0.01 * np.ones(NUM_OUTPUT) # (10,)
-
-    # W1 = 2*(np.random.random(size=(30, NUM_INPUT))/NUM_INPUT**0.5) - 1./NUM_INPUT**0.5 # (30,784)
-    # b1 = 0.01 * np.ones(30) # (30,)
-    # W2 = 2*(np.random.random(size=(NUM_OUTPUT, 30))/30**0.5) - 1./30**0.5 # (10,30)
-    # b2 = 0.01 * np.ones(NUM_OUTPUT) # (10,)
+    W1 = 2*(np.random.random(size=(NUM_HIDDEN, NUM_INPUT))/NUM_INPUT**0.5) - 1./NUM_INPUT**0.5 # (40,784)
+    b1 = 0.01 * np.ones(NUM_HIDDEN) # (40,)
+    W2 = 2*(np.random.random(size=(NUM_OUTPUT, NUM_HIDDEN))/NUM_HIDDEN**0.5) - 1./NUM_HIDDEN**0.5 # (10,40)
+    b2 = 0.01 * np.ones(NUM_OUTPUT) # (10,)
     
 
+    # Concatenate all the weights and biases into one vector; this is necessary for check_grad, (passed the discrepancy test for me)
+    w = pack(W1, b1, W2, b2)
     
-    # Concatenate all the weights and biases into one vector; this is necessary for check_grad
-    # w = pack(W1, b1, W2, b2)
     
-    '''
     # Check that the gradient is correct on just a few examples (randomly drawn).
     idxs = np.random.permutation(trainX.shape[0])[0:NUM_CHECK]
-    print(scipy.optimize.check_grad(lambda w_: fCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_), \
-                                    lambda w_: gradCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_), \
+    print(scipy.optimize.check_grad(lambda w_: fCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_, NUM_HIDDEN), \
+                                    lambda w_: gradCE(np.atleast_2d(trainX[:,idxs]), np.atleast_2d(trainY[idxs,:]), w_, NUM_HIDDEN), \
                                     w))
-    '''
     
     
-    # Hyperparameter Tuning
-    '''
+    
+    # Hyperparameter Tuning (Please uncomment the code for tuning again)
+    
     print()
     bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha = findBestHyperparameters(trainX, trainY, valX, valY, testX, testY)
     print("bestNumUnitsInHiddenLayer",bestNumUnitsInHiddenLayer)
@@ -286,18 +274,16 @@ if __name__ == "__main__":
     print("bestMiniBatchSize", bestMiniBatchSize)
     print("bestNumEpochs", bestNumEpochs)
     print("alpha", alpha)
-    '''
-    # Values obtained after hyperparam tuning
-    bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha = 50, 0.05, 32, 40, 0.01
+    
 
-    # trainedW = train(trainX,trainY, w, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha)
-    trainedW = train(trainX,trainY, testX, testY, bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha)
+    # Train the network using SGD.
+    trainedW = train(trainX,trainY, testX, testY, bestNumUnitsInHiddenLayer, bestEpsilon, bestMiniBatchSize, bestNumEpochs, alpha, True)
 
     testYHat = getYHat(testX, trainedW, bestNumUnitsInHiddenLayer )
     print("---------------------------")
     print("Test Accuracy:",fPC(testY,testYHat)*100)
     print("Test Cross Entropy Loss:",fCE(testX,testY,trainedW,bestNumUnitsInHiddenLayer))
-    # Train the network using SGD.
-    # print(train(trainX, trainY, w, 0.01, 128, 10 ,0.01).shape)
+    
+
     
     
